@@ -1,6 +1,7 @@
 # Coursera GO
 
-This is a simple repository to store assignments for the 
+This is a simple repository to store assignments for the
+
 * [Getting Started with Go](https://www.coursera.org/learn/golang-getting-started) course on Coursera.
 * [Functions, Methods, and Interfaces in Go](https://www.coursera.org/learn/golang-functions-methods) course on Coursera.
 
@@ -14,7 +15,7 @@ This is a simple repository to store assignments for the
 
 ### To Compile
 
-go build -o ./bin/HelloWorld ./source/HelloWorld.go
+go build -o ./bin/HelloWorld/HelloWorld ./source/HelloWorld/HelloWorld.go
 
 ### To Run
 
@@ -22,16 +23,16 @@ go build -o ./bin/HelloWorld ./source/HelloWorld.go
 
 ### To run without compiling first
 
-go run ./source/HelloWorld.go
+go run ./source/HelloWorld/HelloWorld.go
 
 ### To run tests
 
-go test ./source/HelloWorld.go ./source/HelloWorld_test.go
+go test ./source/HelloWorld/HelloWorld.go ./source/HelloWorld/HelloWorld_test.go
 
 ### To run tests with coverage
 
-go test -cover ./source/HelloWorld.go ./source/HelloWorld_test.go
+go test -cover ./source/HelloWorld/HelloWorld.go ./source/HelloWorld/HelloWorld_test.go
 
 ### To run tests with coverage and generate html report
 
-go test -coverprofile=coverage.out ./source/HelloWorld.go ./source/HelloWorld_test.go
+go test -coverprofile=coverage.out ./source/HelloWorld/HelloWorld.go ./source/HelloWorld/HelloWorld_test.go
