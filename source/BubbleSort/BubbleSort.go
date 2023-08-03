@@ -15,13 +15,14 @@ import (
 
 func main() {
 
+	// First, we get the numbers to sort.
 	numbers, err := GetNumbersToSort()
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	// Sort the numbers.
+	// Sort the numbers with Bubble Sort algorithm.
 	BubbleSort(numbers)
 
 	// Print out the sorted numbers.
@@ -60,8 +61,10 @@ func StringsToIntegers(numStrings []string) (numbers []int, err error) {
 	// Create a slice of the appropriate size.
 	numbers = make([]int, len(numStrings))
 
+	// Convert each string to an integer.
 	for i, numStr := range numStrings {
 		numbers[i], err = strconv.Atoi(numStr)
+		// In case of error, we return an empty slice and the error.
 		if err != nil {
 			fmt.Println("Error reading numbers: ", err)
 			return nil, err
@@ -79,7 +82,7 @@ func ManageUserInput() (values []string, err error) {
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
-		return
+		return nil, err
 	}
 
 	input = strings.TrimSpace(input)
@@ -88,7 +91,7 @@ func ManageUserInput() (values []string, err error) {
 	if len(values) > 10 {
 		fmt.Println("Please enter 10 or fewer numbers.")
 		err = fmt.Errorf("Too many numbers")
-		return
+		return nil, err
 	}
 	return
 }
@@ -136,6 +139,11 @@ func BubbleSort(numbers []int) {
 
 // Swap swaps the position of two elements in a slice of integers.
 func Swap(numbers []int, index int) {
+	// We need to make sure that we don't go out of bounds
+	// We already checked this in BubbleSort, but we check again here for safety (if this code is later on called from another function)
+	if index >= len(numbers)-1 {
+		return
+	}
 	originalValueAtIndex := numbers[index]
 	numbers[index] = numbers[index+1]
 	numbers[index+1] = originalValueAtIndex
