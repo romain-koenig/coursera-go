@@ -105,7 +105,6 @@ func GetAnimalInformations(animals []Animal, animalName string, information stri
 func main() {
 	fmt.Println("Animal Informations")
 	fmt.Println("-------------------")
-	fmt.Println("")
 
 	// Let's create an Animal array and unmarshal the JSON data into it.
 
@@ -163,6 +162,7 @@ func ManageUserInput(animals []Animal) (animal string, information string, err e
 		}
 	}
 
+	fmt.Println("")
 	fmt.Println("Enter a command: an animal and an information request (eat, move or speak).")
 	fmt.Println("Available animals: ", availableAnimals)
 	fmt.Printf(`> `)
