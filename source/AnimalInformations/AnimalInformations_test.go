@@ -8,25 +8,25 @@ var constAnimals = []Animal{
 	{
 		Name: "cow",
 		Info: map[string]string{
-			"Food eaten":        "grass",
-			"Locomotion method": "walk",
-			"Spoken sound":      "moo",
+			"food":       "grass",
+			"locomotion": "walk",
+			"noise":      "moo",
 		},
 	},
 	{
 		Name: "bird",
 		Info: map[string]string{
-			"Food eaten":        "worms",
-			"Locomotion method": "fly",
-			"Spoken sound":      "peep",
+			"food":       "worms",
+			"locomotion": "fly",
+			"noise":      "peep",
 		},
 	},
 	{
 		Name: "snake",
 		Info: map[string]string{
-			"Food eaten":        "mice",
-			"Locomotion method": "slither",
-			"Spoken sound":      "hsss",
+			"food":       "mice",
+			"locomotion": "slither",
+			"noise":      "hsss",
 		},
 	},
 }
@@ -84,7 +84,7 @@ func TestEat(t *testing.T) {
 			animal: Animal{
 				Name: "cow",
 				Info: map[string]string{
-					"Food eaten": "grass",
+					"food": "grass",
 				},
 			},
 			wantEat: "grass",
@@ -94,7 +94,7 @@ func TestEat(t *testing.T) {
 			animal: Animal{
 				Name: "snake",
 				Info: map[string]string{
-					"Food eaten": "mice",
+					"food": "mice",
 				},
 			},
 			wantEat: "mice",
@@ -123,7 +123,7 @@ func TestMove(t *testing.T) {
 			animal: Animal{
 				Name: "cow",
 				Info: map[string]string{
-					"Locomotion method": "walk",
+					"locomotion": "walk",
 				},
 			},
 			wantMove: "walk",
@@ -133,7 +133,7 @@ func TestMove(t *testing.T) {
 			animal: Animal{
 				Name: "snake",
 				Info: map[string]string{
-					"Locomotion method": "slither",
+					"locomotion": "slither",
 				},
 			},
 			wantMove: "slither",
@@ -162,7 +162,7 @@ func TestSpeak(t *testing.T) {
 			animal: Animal{
 				Name: "cow",
 				Info: map[string]string{
-					"Spoken sound": "moo",
+					"noise": "moo",
 				},
 			},
 			wantSpeak: "moo",
@@ -172,7 +172,7 @@ func TestSpeak(t *testing.T) {
 			animal: Animal{
 				Name: "snake",
 				Info: map[string]string{
-					"Spoken sound": "hsss",
+					"noise": "hsss",
 				},
 			},
 			wantSpeak: "hsss",

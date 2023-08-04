@@ -16,34 +16,34 @@ const data = `
 	  {
 		"name": "cow",
 		"info": {
-		  "Food eaten": "grass",
-		  "Locomotion method": "walk",
-		  "Spoken sound": "moo"
+		  "food": "grass",
+		  "locomotion": "walk",
+		  "noise": "moo"
 		}
 	  },
 	  {
 		"name": "bird",
 		"info": {
-		  "Food eaten": "worms",
-		  "Locomotion method": "fly",
-		  "Spoken sound": "peep"
+		  "food": "worms",
+		  "locomotion": "fly",
+		  "noise": "peep"
 		}
 	  },
 	  {
 		"name": "snake",
 		"info": {
-		  "Food eaten": "mice",
-		  "Locomotion method": "slither",
-		  "Spoken sound": "hsss"
+		  "food": "mice",
+		  "locomotion": "slither",
+		  "noise": "hsss"
 		}
 	  }
 	  ,
 	  {
 		"name": "kangaroo",
 		"info": {
-		  "Food eaten": "grass",
-		  "Locomotion method": "jump",
-		  "Spoken sound": "boing"
+		  "food": "grass",
+		  "locomotion": "jump",
+		  "noise": "boing"
 		}
 	  }
 	]
@@ -59,17 +59,17 @@ type Animal struct {
 
 // Eat method will return the food the animal eats.
 func (a Animal) Eat() string {
-	return a.Info["Food eaten"]
+	return a.Info["food"]
 }
 
 // Move method will return the locomotion method of the animal.
 func (a Animal) Move() string {
-	return a.Info["Locomotion method"]
+	return a.Info["locomotion"]
 }
 
 // Speak method will return the sound the animal makes.
 func (a Animal) Speak() string {
-	return a.Info["Spoken sound"]
+	return a.Info["noise"]
 }
 
 // GetAnimalInformations function will be used to get the information about the animal the user is looking for. We give it the list of animals, the name of the animal and the information the user wants to know about it.
