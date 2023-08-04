@@ -121,13 +121,21 @@ func main() {
 	// Let's ask the user for the name of the animal and the information they want to know about it.
 	// We'll then call GetAnimalInformations to get the information and print it on screen.
 
-	command, err := ManageUserInput(animals)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
+	// Loop for user commands until "exit".
+	for {
+		animal, info, err := ManageUserInput(animals)
+		if err != nil {
+			if err.Error() == "exit" {
+				fmt.Println("Exiting program.")
+				break
+			}
+			fmt.Println("Error: ", err)
+			continue
+		}
 
-	println(GetAnimalInformations(animals, command[0], command[1]))
+		result := GetAnimalInformations(animals, animal, info)
+		println(result)
+	}
 
 }
 
@@ -144,7 +152,7 @@ func contains(s []string, str string) bool {
 }
 
 // ManageUserInput is used to get the user input and sanitize it.
-func ManageUserInput(animals []Animal) (values []string, err error) {
+func ManageUserInput(animals []Animal) (animal string, information string, err error) {
 
 	availableAnimals := make([]string, 0, len(animals))
 	// Let's parse the animals and see which animals are available.
@@ -155,40 +163,47 @@ func ManageUserInput(animals []Animal) (values []string, err error) {
 		}
 	}
 
-	fmt.Println("Enter a a command: an animal and an information request (eat, move or speak).")
+	fmt.Println("Enter a command: an animal and an information request (eat, move or speak).")
 	fmt.Println("Available animals: ", availableAnimals)
 	fmt.Printf(`> `)
 
-	values = make([]string, 0, 2)
+	var values = make([]string, 0, 2)
 
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
-		return nil, err
+		return "", "", err
 	}
 
-	input = strings.TrimSpace(input)
+	// Convert to lower case and remove leading/trailing spaces.
+	input = strings.ToLower(strings.TrimSpace(input))
+
+	// If user types "exit", return a special flag to signal the end of input.
+	if input == "exit" || input == "Exit" {
+		return "", "", fmt.Errorf("exit")
+	}
+
 	values = strings.Split(input, " ")
 
 	if len(values) != 2 {
 		fmt.Println("Please enter 2 words: an animal (cow, bird or snake) and an information request (eat, move or speak).")
 		err = fmt.Errorf("Invalid request")
-		return nil, err
+		return "", "", err
 	}
 
 	if !contains(availableAnimals, values[0]) {
 		fmt.Println("Please enter an animal.")
 		fmt.Println("Available animals: ", availableAnimals)
 		err = fmt.Errorf("Invalid animal")
-		return nil, err
+		return "", "", err
 	}
 
 	if values[1] != "eat" && values[1] != "move" && values[1] != "speak" {
 		fmt.Println("Please enter an information request (eat, move or speak).")
 		err = fmt.Errorf("Invalid information request")
-		return nil, err
+		return "", "", err
 	}
 
-	return
+	return values[0], values[1], nil
 }
