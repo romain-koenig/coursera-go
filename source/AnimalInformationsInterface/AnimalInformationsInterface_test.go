@@ -148,8 +148,11 @@ func TestManageUserInput(t *testing.T) {
 	animals := []Animal{Cow{name: "Bessie"}, Bird{name: "John"}, Snake{name: "Alex"}}
 
 	var ErrInvalidAnimal = errors.New("Invalid animal")
+	var ErrInvalidAnimalType = errors.New("Invalid animal type")
 	var ErrInvalidCommand = errors.New("Invalid command")
 	var ErrInvalidInformationRequest = errors.New("Invalid information request")
+	var ErrExit = errors.New("exit")
+	var ErrHelp = errors.New("help")
 
 	tests := []struct {
 		name         string
@@ -163,6 +166,13 @@ func TestManageUserInput(t *testing.T) {
 			input:        "query Bessie move",
 			animals:      animals,
 			wantResponse: "query Bessie move",
+			wantErr:      nil,
+		},
+		{
+			name:         "Valid query with badly written animal",
+			input:        "query BeSSie move",
+			animals:      animals,
+			wantResponse: "query BeSSie move",
 			wantErr:      nil,
 		},
 		{
@@ -185,6 +195,48 @@ func TestManageUserInput(t *testing.T) {
 			animals:      animals,
 			wantResponse: "",
 			wantErr:      ErrInvalidCommand,
+		},
+		{
+			name:         "Create Animal",
+			input:        "newanimal Jojo snake",
+			animals:      animals,
+			wantResponse: "newanimal Jojo snake",
+			wantErr:      nil,
+		},
+		{
+			name:         "Create: Wrong Animal Type",
+			input:        "newanimal Jojo kangaroo",
+			animals:      animals,
+			wantResponse: "",
+			wantErr:      ErrInvalidAnimalType,
+		},
+		{
+			name:         "Exit",
+			input:        "exit",
+			animals:      animals,
+			wantResponse: "",
+			wantErr:      ErrExit,
+		},
+		{
+			name:         "Invalid command simple word",
+			input:        "notacommand",
+			animals:      animals,
+			wantResponse: "",
+			wantErr:      ErrInvalidCommand,
+		},
+		{
+			name:         "Empty command",
+			input:        "",
+			animals:      animals,
+			wantResponse: "",
+			wantErr:      ErrInvalidCommand,
+		},
+		{
+			name:         "Help command",
+			input:        "help",
+			animals:      animals,
+			wantResponse: "",
+			wantErr:      ErrHelp,
 		},
 	}
 

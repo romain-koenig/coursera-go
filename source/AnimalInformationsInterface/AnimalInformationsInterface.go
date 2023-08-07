@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -117,7 +119,7 @@ func GetAnimalInformations(animals []Animal, animalName string, information stri
 
 	for _, animal := range animals {
 
-		if animal.GetName() == animalName {
+		if strings.ToLower(animal.GetName()) == strings.ToLower(animalName) {
 			// We found the animal the user is looking for.
 			// Let's check what information the user wants to know about the animal.
 
@@ -154,46 +156,99 @@ func main() {
 	fmt.Println("Animal Informations V2 - Interfaces")
 	fmt.Println("-----------------------------------")
 
-	// Let's create an Animal array and unmarshal the JSON data into it.
+	// Let's create an Animal array.
 
 	var animals []Animal
 
+	// I create 3 random animals to fill the array, so it's simpler to test the program.
+	// if you don't like it and want to start fresh, please change test to false.
+
+	test := true
+	// test := false
+	if test {
+		bessie := Cow{name: "Bessie"}
+		tweety := Bird{name: "Tweety"}
+		kobra := Snake{name: "Kobra"}
+
+		animals = append(animals, bessie)
+		animals = append(animals, tweety)
+		animals = append(animals, kobra)
+	}
+
 	// Let's ask the user for the name of the animal and the information they want to know about it.
 	// We'll then call GetAnimalInformations to get the information and print it on screen.
-
-	bessie := Cow{name: "Bessie"}
-	tweety := Bird{name: "Tweety"}
-	kobra := Snake{name: "Kobra"}
-
-	animals = append(animals, bessie)
-	animals = append(animals, tweety)
-	animals = append(animals, kobra)
-
-	GetAnimalInformations(animals, "Bessie", "eat")
-
-	ManageUserInput("newanimal Bessie cow", animals)
 
 	// The array is empty, the user will be able to create animals in it.
 
 	// Let's ask the user for the name of the animal and the information they want to know about it.
 	// We'll then call GetAnimalInformations to get the information and print it on screen.
 
+	PrintInstructions(animals)
+
 	// Loop for user commands until "exit".
-	// for {
-	// 	_, err := ManageUserInput("", animals)
-	// 	if err != nil {
-	// 		if err.Error() == "exit" {
-	// 			fmt.Println("Exiting program.")
-	// 			break
-	// 		}
-	// 		fmt.Println("Error: ", err)
-	// 		continue
-	// 	}
+	for {
+		fmt.Print("> ")
+		reader := bufio.NewReader(os.Stdin)
 
-	// 	// result := GetAnimalInformations(animals, animalName, info)
-	// 	// println(result)
-	// }
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error: ", err)
+			continue
+		}
 
+		command, err := ManageUserInput(input, animals)
+		if err != nil {
+			if err.Error() == "exit" {
+				fmt.Println("Exiting program.")
+				break
+			}
+			if err.Error() == "help" {
+				PrintInstructions(animals)
+				continue
+			} else {
+				fmt.Println("Error: ", err)
+			}
+			continue
+
+		}
+
+		splitCommand := strings.Split(command, " ")
+
+		switch splitCommand[0] {
+		case "newanimal":
+			animalName := splitCommand[1]
+			animalType := splitCommand[2]
+			// Create a new animal
+			switch animalType {
+			case "cow":
+				animals = append(animals, Cow{name: animalName})
+				fmt.Println("Created it!")
+				break
+			case "bird":
+				animals = append(animals, Bird{name: animalName})
+				fmt.Println("Created it!")
+				break
+			case "snake":
+				animals = append(animals, Snake{name: animalName})
+				fmt.Println("Created it!")
+				break
+			default:
+				fmt.Println("Unknown animal type")
+			}
+			break
+		case "query":
+			// Query an animal
+			// Get the animal name and the information the user wants to know about it.
+			animalName := splitCommand[1]
+			info := splitCommand[2]
+
+			// Call GetAnimalInformations to get the information and print it on screen.
+			GetAnimalInformations(animals, animalName, info)
+			break
+		default:
+			fmt.Println("Unknown command")
+		}
+	}
 }
 
 // contains is used to check if a string is in a string array. It's just a helper function.
@@ -208,54 +263,69 @@ func contains(s []string, str string) bool {
 	return false
 }
 
+// ManageUserInput function will be used to manage the user input. It will check if the input is valid, and return the command to execute. It's a helper function designed to sanitize the user input.
 func ManageUserInput(input string, animals []Animal) (query string, err error) {
 
+	//We make a list of available animals to check if the user input is valid. This list is lowercase to make the check case insensitive.
 	availableAnimals := make([]string, 0, len(animals))
 	for _, animal := range animals {
-		if !contains(availableAnimals, animal.GetName()) {
-			availableAnimals = append(availableAnimals, animal.GetName())
+		if !contains(availableAnimals, strings.ToLower(animal.GetName())) {
+			availableAnimals = append(availableAnimals, strings.ToLower(animal.GetName()))
 		}
 	}
 
-	PrintInstructions(availableAnimals)
-
 	input = strings.TrimSpace(input)
 
-	// if input == "exit" || input == "Exit" {
-	// 	return "", fmt.Errorf("exit")
-	// }
+	// Special case: the user wants to exit the program.
+	if input == "exit" || input == "Exit" {
+		return "", fmt.Errorf("exit")
+	}
+
+	// Special case: the user wants some help.
+	if input == "help" || input == "Help" {
+		return "", fmt.Errorf("help")
+	}
 
 	values := strings.Split(input, " ")
 
-	// if len(values) != 3 {
-	// 	return "", fmt.Errorf("Invalid request")
-	// }
+	// The user must enter 3 values. Unless they want to exit or help. Which has been checked before.
+	if len(values) != 3 {
+		return "", fmt.Errorf("Invalid command")
+	}
 
+	values[0] = strings.ToLower(values[0])
+	values[2] = strings.ToLower(values[2])
+
+	// Let's check if the user input is valid.
+	// The command must be "newanimal" or "query".
 	if values[0] != "newanimal" && values[0] != "query" {
 		return "", fmt.Errorf("Invalid command")
 	}
 
-	if values[0] == "query" && !contains(availableAnimals, values[1]) {
+	//In case of a "query" The animal name must be known.
+	if values[0] == "query" && !contains(availableAnimals, strings.ToLower(values[1])) {
 		return "", fmt.Errorf("Invalid animal")
 	}
-
-	// if values[0] == "newanimal" && (values[2] != "cow" && values[2] != "bird" && values[2] != "snake") {
-	// 	return "", fmt.Errorf("Invalid animal type")
-	// }
-
+	// In case of a "query" the information must be either "eat", "move" or "speak".
 	if values[0] == "query" && values[2] != "eat" && values[2] != "move" && values[2] != "speak" {
 		return "", fmt.Errorf("Invalid information request")
 	}
 
+	// In case of a "newanimal" the animal type must be either "cow", "bird" or "snake".
+	if values[0] == "newanimal" && (values[2] != "cow" && values[2] != "bird" && values[2] != "snake") {
+		return "", fmt.Errorf("Invalid animal type")
+	}
+
+	// If we're here, the input is valid. We return the command to execute.
 	return values[0] + " " + values[1] + " " + values[2], nil
 }
 
-func PrintInstructions(availableAnimals []string) {
+// PrintInstructions function will print the instructions to the user. Centralized here to avoid code duplication.
+func PrintInstructions(availableAnimals []Animal) {
 	fmt.Println("")
 	fmt.Println("Enter a command followed by parameters")
-	fmt.Println("newanimal <animal name> < animal type> (animal type = cow, bird or snake)")
+	fmt.Println("newanimal <animal name> <animal type> (animal type = cow, bird or snake)")
 	fmt.Println("query <animal name> <information> (information = eat, move or speak)")
 	fmt.Println("Enter \"exit\" to exit the program.")
-	fmt.Println("Available animals: ", availableAnimals)
-	fmt.Printf(`> `)
+	fmt.Println("Existing animals: ", availableAnimals)
 }
