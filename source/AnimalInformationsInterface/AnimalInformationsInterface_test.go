@@ -124,25 +124,6 @@ func TestSpeak(t *testing.T) {
 
 }
 
-func AfterTest(w *os.File, r *os.File, oldStdout *os.File) bytes.Buffer {
-	w.Close()
-
-	var buf bytes.Buffer
-	buf.ReadFrom(r)
-
-	os.Stdout = oldStdout
-	return buf
-}
-
-func BeforeTest() (*os.File, *os.File, *os.File) {
-	oldStdout := os.Stdout
-
-	r, w, _ := os.Pipe()
-
-	os.Stdout = w
-	return oldStdout, r, w
-}
-
 func TestManageUserInput(t *testing.T) {
 
 	animals := []Animal{Cow{name: "Bessie"}, Bird{name: "John"}, Snake{name: "Alex"}}
@@ -260,4 +241,29 @@ func TestManageUserInput(t *testing.T) {
 		})
 	}
 
+}
+
+// PLEASE NOTE
+
+//B eforeTest and AfterTest are used to test functions that does not return anything but print to stdout.
+
+// BeforeTest is a helper function to backup the real stdout, create a new pipe (reader and writer ends),
+func BeforeTest() (*os.File, *os.File, *os.File) {
+	oldStdout := os.Stdout
+
+	r, w, _ := os.Pipe()
+
+	os.Stdout = w
+	return oldStdout, r, w
+}
+
+// AfterTest is a helper function to close writer end to signal to the reader that we're done,
+func AfterTest(w *os.File, r *os.File, oldStdout *os.File) bytes.Buffer {
+	w.Close()
+
+	var buf bytes.Buffer
+	buf.ReadFrom(r)
+
+	os.Stdout = oldStdout
+	return buf
 }
