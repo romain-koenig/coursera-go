@@ -7,12 +7,10 @@ import (
 )
 
 // In this program, we'll explore Race conditions and how to avoid them.
-// First, we'll create a variable and increment it N times with 2 goroutines.
-// Then, we'll do the same thing without goroutines (simple functions) and compare the results.
-// Last
+// We'll create a variable and increment it N times in two separate functions. The total at the end should be 2N.
 
-// Note: in the number of iterations is small enough, you might not see any difference between the 2 methods.
-// Note: we set up a timer to see if the goroutines go faster than the simple functions. You may or may not see a difference.
+// Note: in the number of iterations is small enough, you might not see any difference between the different methods.
+// Note: we set up a timer to see the difference in execution time between the different methods.
 
 // Note : if you run
 // go run -race RaceCondition.go
@@ -21,9 +19,9 @@ import (
 // WARNING: DATA RACE
 // Read at 0x00c0000bc008 by goroutine 8:
 
-// This is very important, because as stated above, if we set the number of increment to 1000, we will never see the race condition during our tests. But it's there. And it can be very hard to find.
+// This is very important, because as stated above, if we set the number of increment to a small enough number (for example 1000), we will never see the race condition problem during our tests. This flag help us to see it.
 
-var numberOfIncrementations = 1000000000
+var numberOfIncrementations = 1000000000 // make it large enough
 
 func main() {
 
@@ -48,12 +46,12 @@ func main() {
 
 	// Print the variable's value
 	fmt.Printf("With Goroutines: %d (should be %d)\n", goRoutinesVariable, numberOfIncrementations*2)
-
-	var simpleVariable int = 0
+	// The result MAY be false
 
 	fmt.Println("------------------------")
 
 	// Now, we'll do it with simple functions ( = NO CONCURRENCY)
+	var simpleVariable int = 0
 
 	// Start timer for regular functions
 	start = time.Now()
@@ -68,8 +66,7 @@ func main() {
 	// Print the variable's value
 	fmt.Printf("Without Goroutines: %d (should be %d)\n", simpleVariable, numberOfIncrementations*2)
 
-	// What we usually see here is a totally wrong answer with goroutines, and the right answer without goroutines.
-	// We also usually see that it was faster with goroutines, at least on a commputer with multiuple cores.
+	// The result here should be OK. It's usually a bit slower than the goroutines version. But slow and right is better than fast and wrong.
 
 	fmt.Println("------------------------")
 
@@ -83,12 +80,12 @@ func main() {
 
 	// We'll do it with a Mutex
 
-	var mu sync.Mutex // Declare a mutex
+	var mutex sync.Mutex // Declare a mutex
 
 	wg.Add(2)
 
-	go incrementWithMutex(&goRoutinesAndMutexVariable, &wg, &mu)
-	go incrementWithMutex(&goRoutinesAndMutexVariable, &wg, &mu)
+	go incrementWithMutex(&goRoutinesAndMutexVariable, &wg, &mutex)
+	go incrementWithMutex(&goRoutinesAndMutexVariable, &wg, &mutex)
 
 	wg.Wait()
 
@@ -101,6 +98,7 @@ func main() {
 	// Print the variable's value
 	fmt.Printf("With Goroutines and MUTEX: %d (should be %d)\n", goRoutinesAndMutexVariable, numberOfIncrementations*2)
 
+	// Here we should have the right result, but it's much slower than the other methods.
 }
 
 func increment(variable *int, wg *sync.WaitGroup) {
@@ -144,3 +142,7 @@ func incrementWithMutex(variable *int, wg *sync.WaitGroup, mutex *sync.Mutex) {
 // With Goroutines and MUTEX: 2000000000 (should be 2000000000)
 
 // So : we got the right answer with goroutines and mutex, but it was MUCH slower than without goroutines.
+
+// Let's hope that the rest of the course will help us to find a better solution. As a matter of fact, based on this example, I would stick to the simple function version, because it's fast enough and it gives the right answer.
+
+// Thanks for your time!
