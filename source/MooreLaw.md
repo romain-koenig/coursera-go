@@ -8,7 +8,8 @@ Several factors, both physical and economic in nature, have constrained the cont
 
 - **Thermal Constraints**: As we pack more transistors onto a chip, dissipating the generated heat becomes a significant challenge. Excessive heat can lead to reduced performance and, in extreme cases, potential damage (or even melting) of the chip.
 
-- **Power Consumption**: While smaller transistors have been historically associated with lower power consumption, there's a limit to how low this can go. The equation P = αCFV² shows that dynamic power is proportional to the square of the voltage swing. This voltage can't be reduced indefinitely because:
+- **Power Consumption**: While smaller transistors have been historically associated with lower power consumption, there's a limit to how low this can go. The equation P = αCFV² shows that dynamic power is proportional to the square of the voltage swing. This makes Voltage the number one factor in determining power consumption.
+Unfortunately, this voltage can't be reduced indefinitely because:
   - It needs to be sufficient to ensure the transistor switches effectively.
   - A lower threshold makes it difficult to differentiate between values in the presence of noise (and there is always noise in a real world scenario).
   
