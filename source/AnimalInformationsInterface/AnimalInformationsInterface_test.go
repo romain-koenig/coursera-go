@@ -244,8 +244,7 @@ func TestManageUserInput(t *testing.T) {
 }
 
 // PLEASE NOTE
-
-//B eforeTest and AfterTest are used to test functions that does not return anything but print to stdout.
+//BeforeTest and AfterTest are used to test functions that does not return anything but print to stdout.
 
 // BeforeTest is a helper function to backup the real stdout, create a new pipe (reader and writer ends),
 func BeforeTest() (*os.File, *os.File, *os.File) {

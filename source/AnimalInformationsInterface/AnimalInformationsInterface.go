@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Here is or new program. It is similar to the previous version of the program, except that we use the Animal interface instead of the Animal struct.
+// Here is our new program. It is similar to the previous version of the program, except that we use the Animal interface instead of the Animal struct.
 
 func main() {
 	fmt.Println("Animal Informations V2 - Interfaces")
@@ -59,7 +59,7 @@ func main() {
 
 // Let's define an interface, called Animal, that will be used to get the information about the animal.
 // Eat, Move and Speak are the methods that will be used to get the information about the animal.
-// GetName is the method that will be used to get the name of the animal.
+// I can't think of a better way to do it, as we'll have to determine on which animal we are working on, and then call the appropriate method.
 
 type Animal interface {
 	Eat()
@@ -84,6 +84,7 @@ type Snake struct {
 
 // Let's define the methods that will implement the AnimalInterface interface.
 
+// For the Cow type, we implement the Eat, Move and Speak methods.
 func (c Cow) Eat() {
 	fmt.Println("grass")
 }
@@ -102,6 +103,8 @@ func (c Cow) GetName() string {
 
 // ----------------------------
 
+// For the Bird type, we implement the Eat, Move and Speak methods.
+
 func (b Bird) Eat() {
 	fmt.Println("worms")
 }
@@ -119,6 +122,8 @@ func (b Bird) GetName() string {
 }
 
 // ----------------------------
+
+// For the Snake type, we implement the Eat, Move and Speak methods.
 
 func (s Snake) Eat() {
 	fmt.Println("mice")
@@ -182,11 +187,12 @@ func GetAnimalInformations(animals []Animal, animalName string, information stri
 
 // ExecuteCommand function will be used to execute the command the user entered. We give it the command and the list of animals.
 // It returns the list of animals, as it can be modified by the user commands.
-// PLEASE NOTE: we pass a slice, which is kind of a pointer to the array. So we don't need to return the slice, as it is already modified. BUT, if we were to append to the slice (and we are), we would need to return it, as the slice would be copied and the original slice would not be modified. When we add new elements to the slice, and it increases its capacity, the slice is copied to a new array, and the original slice is not modified. So we need to return the slice, and assign it to the original slice.
+// PLEASE NOTE: we pass a slice, which is kind of a pointer to an array. So we usually don't need to return the slice, as if it's modified, we get the modified version out ou the function. BUT, if we were to append to the slice (and we are), we would need to return it, as the slice would be copied and the original slice would not be modified. When we add new elements to the slice, and it increases its capacity, the slice is copied to a new array, and the original slice is not modified. So we need to return the slice, and assign it to the original slice.
 // (dear reader, I'm sorry for the long comments, but I'm also writing to my future self, who will probably forget about this in a few months).
 func ExecuteCommand(command string, animals []Animal) []Animal {
 	splitCommand := strings.Split(command, " ")
 
+	// Please note that we already checked that the command is valid and sanitized, so we don't need to check it again here. We only do the very basic checks here.
 	command = strings.ToLower(splitCommand[0])
 
 	switch command {
@@ -225,7 +231,7 @@ func ExecuteCommand(command string, animals []Animal) []Animal {
 	return animals
 }
 
-// ManageUserInput function will be used to manage the user input. It will check if the input is valid, and return the command to execute. It's a helper function designed to sanitize the user input.
+// ManageUserInput function will be used to check and sanitize the user input. It will check if the input is valid, and return the command to execute.
 func ManageUserInput(input string, animals []Animal) (query string, err error) {
 
 	//We make a list of available animals to check if the user input is valid. This list is lowercase to make the check case insensitive.
