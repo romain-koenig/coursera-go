@@ -7,6 +7,9 @@ import (
 )
 
 // In this program, we'll explore Race conditions and how to avoid them.
+
+// There is a CONCLUSION / TLDR at the end of this file. You can skip to it if you want.
+
 // We'll create a variable and increment it N times in two separate functions. The total at the end should be 2N.
 
 // Note: in the number of iterations is small enough, you might not see any difference between the different methods.
@@ -146,3 +149,23 @@ func incrementWithMutex(variable *int, wg *sync.WaitGroup, mutex *sync.Mutex) {
 // Let's hope that the rest of the course will help us to find a better solution. As a matter of fact, based on this example, I would stick to the simple function version, because it's fast enough and it gives the right answer.
 
 // Thanks for your time!
+
+// ================== CONCLUSION / TLDR ==================
+
+// Race Condition:
+
+// A race condition is a situation where two or more concurrent threads or processes attempt to modify shared data at the same time, leading to unpredictable and often erroneous outcomes. The exact outcome depends on the relative timing of their operations.
+
+// How it Can Occur in this code:
+
+//     With Goroutines: When two goroutines (increment) run concurrently and attempt to increment the shared variable goRoutinesVariable, both might read and write to it almost simultaneously. Since the read-modify-write is not an atomic operation, one goroutine might overwrite the change made by another, leading to inconsistent results.
+
+//     Result: The final value of goRoutinesVariable is unpredictable and often less than the expected value (numberOfIncrementations * 2).
+
+//     Without Goroutines: We simply call the increment function twice sequentially. There's no concurrency, so no race condition arises.
+
+//     Result: The final value of simpleVariable is consistent and matches the expected value.
+
+//     With Goroutines and Mutex: By introducing a mutex, we ensure that only one goroutine at a time can increment the shared variable, effectively serializing the increment operations.
+
+//     Result: The final value of goRoutinesAndMutexVariable is consistent and matches the expected value. However, due to the overhead of locking and unlocking the mutex for every iteration, this approach is significantly slower.
