@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"math/rand"
+	"os"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,37 +18,52 @@ import (
 // This program shows (as requested) the use of goroutines to sort a slice of integers.
 // However, for small slices, it is actually slower than a regular sort.
 // This is because of the overhead of creating goroutines, context switching, etc.
-// If you want to see the difference, you can change the default value of the "size" flag to 100000 for example.
+// As it woul be impossible to type in enough numbers to see the difference, there is a buil-in auto mode
+// If you want to see the difference, you can set the program to auto mode
+// and change the default value of the "size" flag to a larger number 100000 for example.
 // For that, you can call the program with the following command:
-// go run SortingGoroutines.go -size=100000
-// or whichever size you want to test.
+// go run SortingGoroutines.go - auto -size=100000
 // On my PC, things even out at about 1000 elements in the slice, and goroutines are faster for larger slices.
 // size=100000000 takes a few seconds to run, I dont recommend going higher than that.
 
 func main() {
 
-	// Define a flag. In this case, we expect an integer flag named "size" with a default value of 13.
-	// The description (third argument) will be displayed in the default help message.
-	var size int
-	flag.IntVar(&size, "size", 13, "size of the slice to be sorted")
-
-	// Parse the flags. This will read the user provided values, or if they're not provided, it will use the default values.
-	flag.Parse()
-
 	fmt.Println("Sorting a slice using goroutines and merge sort algorithm")
 	fmt.Println("---------------------------------------------------------")
 	fmt.Println()
 
-	// We'll use the current time as a seed for the random number generator. If we don't do that, we'll always get the same random numbers.
-	rand.Seed(time.Now().UnixNano())
+	autoMode := flag.Bool("auto", false, "generate random slice automatically")
+	size := flag.Int("size", 100, "size of the slice to be sorted (only used with -auto flag)")
+	flag.Parse()
 
-	// Let's create a slice of integers
-	slice := make([]int, size)
+	var slice []int
 
-	// we'll fill this slice with random numbers
-	randomise(slice)
+	if !*autoMode {
+		// Prompt user for input - This is the standard case for this program, as required by the assignement
+		fmt.Println("Please enter integers to sort, separated by spaces:")
+		reader := bufio.NewReader(os.Stdin)
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+		inputs := strings.Split(input, " ")
 
-	printSlice("Unsorted randomised slice", slice)
+		for _, s := range inputs {
+			num, err := strconv.Atoi(s)
+			if err == nil {
+				slice = append(slice, num)
+			} else {
+				fmt.Printf("'%s' is not a valid integer and will be skipped.\n", s)
+			}
+		}
+	} else {
+		// Here we are in auto mode, we'll generate a random slice of integers
+		rand.Seed(time.Now().UnixNano())
+		// Generate random numbers
+		slice = make([]int, *size)
+		randomise(slice)
+
+	}
+
+	printSlice("Unsorted slice", slice)
 
 	// well divide the slice in 4 parts (about the same size, 4th part might be a bit bigger or smaller if the slice size is not a multiple of 4)
 
@@ -54,11 +73,6 @@ func main() {
 	quarter := len(slice) / 4
 
 	slice1, slice2, slice3, slice4 := slice[:quarter], slice[quarter:quarter*2], slice[quarter*2:quarter*3], slice[quarter*3:]
-
-	printSlice("1st slice", slice1)
-	printSlice("2nd slice", slice2)
-	printSlice("3rd slice", slice3)
-	printSlice("4th slice", slice4)
 
 	// we'll create 4 channels to send the sorted slices
 	chans := make([]chan []int, 4)
@@ -86,27 +100,30 @@ func main() {
 
 	printSlice("Sorted slice", slice)
 
-	//Now, just for fun, let's sort the slice using the regular sort function
+	if *autoMode {
+		//Now, just for fun, let's sort the slice using the regular sort function
+		// This is only done in auto mode as the results would not be relevant if the user entered the numbers themselves
 
-	noGoroutinesSlice := make([]int, size)
-	randomise(noGoroutinesSlice)
+		noGoroutinesSlice := make([]int, *size)
+		randomise(noGoroutinesSlice)
 
-	printSlice("Unsorted randomised slice for the process without Goroutines", noGoroutinesSlice)
+		printSlice("Unsorted randomised slice for the process without Goroutines", noGoroutinesSlice)
 
-	// Start timer for regular functions
-	start = time.Now()
+		// Start timer for regular functions
+		start = time.Now()
 
-	// sort the slice using the regular sort function
+		// sort the slice using the regular sort function
 
-	sort.Ints(noGoroutinesSlice)
-	elapsedStandard := time.Since(start)
+		sort.Ints(noGoroutinesSlice)
+		elapsedStandard := time.Since(start)
 
-	printSlice("Sorted slice using the regular sort function", noGoroutinesSlice)
+		printSlice("Sorted slice using the regular sort function", noGoroutinesSlice)
 
-	fmt.Println("Time taken to sort the slice using the regular sort function :", elapsedStandard)
-	fmt.Println()
+		fmt.Println("Time taken to sort the slice using the regular sort function :", elapsedStandard)
+		fmt.Println()
 
-	comparePerformance(elapsed, elapsedStandard)
+		comparePerformance(elapsed, elapsedStandard)
+	}
 
 }
 
@@ -129,6 +146,9 @@ func Sort(slice []int, c chan []int) {
 
 	// "My" Sort function just calls the regular sort function implemented in the sort package, and puts the result in the channel
 	// This is just to show how to use channels to send data between goroutines, and so that the timing is not polluted by the time taken to sort the slice (which would not be optimised if I do it myself)
+
+	printSlice("In a GOROUTINE - Unsorted part of the slice", slice)
+
 	sort.Ints(slice)
 
 	c <- slice
