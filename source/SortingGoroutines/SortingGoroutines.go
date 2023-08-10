@@ -159,6 +159,7 @@ func merge(s1 []int, s2 []int) (s []int) {
 	return s
 }
 
+// comparePerformance compares the performance of the two algorithms and prints a message
 func comparePerformance(elapsed1, elapsed2 time.Duration) {
 	elapsed1Millis := float64(elapsed1) / float64(time.Millisecond)
 	elapsed2Millis := float64(elapsed2) / float64(time.Millisecond)
