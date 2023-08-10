@@ -1,36 +1,64 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
+	"sort"
 	"time"
 )
 
+// ------------------------
+// NOTE FOR THE READER:
+// ------------------------
+// This program shows (as requested) the use of goroutines to sort a slice of integers.
+// However, for small slices, it is actually slower than a regular sort.
+// This is because of the overhead of creating goroutines, context switching, etc.
+// If you want to see the difference, you can change the default value of the "size" flag to 100000 for example.
+// For that, you can call the program with the following command:
+// go run SortingGoroutines.go -size=100000
+// or whichever size you want to test.
+// On my PC, things even out at about 1000 elements in the slice, and goroutines are faster for larger slices.
+// size=100000000 takes a few seconds to run, I dont recommend going higher than that.
+
 func main() {
 
+	// Define a flag. In this case, we expect an integer flag named "size" with a default value of 13.
+	// The description (third argument) will be displayed in the default help message.
+	var size int
+	flag.IntVar(&size, "size", 13, "size of the slice to be sorted")
+
+	// Parse the flags. This will read the user provided values, or if they're not provided, it will use the default values.
+	flag.Parse()
+
+	fmt.Println("Sorting a slice using goroutines and merge sort algorithm")
+	fmt.Println("---------------------------------------------------------")
+	fmt.Println()
+
+	// We'll use the current time as a seed for the random number generator. If we don't do that, we'll always get the same random numbers.
 	rand.Seed(time.Now().UnixNano())
 
-	const size = 31
-	// Let's create a slice of integers (40 integers)
+	// Let's create a slice of integers
 	slice := make([]int, size)
 
-	// we'll fill this slice with random numbers going from 0 to 100
-	for i := 0; i < len(slice); i++ {
-		slice[i] = rand.Intn(100)
-	}
+	// we'll fill this slice with random numbers
+	randomise(slice)
 
-	fmt.Println("Unsorted slice: ", slice)
+	printSlice("Unsorted randomised slice", slice)
 
-	// well divide the slice in 4 parts (about the same size)
+	// well divide the slice in 4 parts (about the same size, 4th part might be a bit bigger or smaller if the slice size is not a multiple of 4)
+
+	fmt.Println("Dividing the slice in 4 parts")
+	fmt.Println()
 
 	quarter := len(slice) / 4
 
 	slice1, slice2, slice3, slice4 := slice[:quarter], slice[quarter:quarter*2], slice[quarter*2:quarter*3], slice[quarter*3:]
 
-	fmt.Println("Slice 1: ", slice1)
-	fmt.Println("Slice 2: ", slice2)
-	fmt.Println("Slice 3: ", slice3)
-	fmt.Println("Slice 4: ", slice4)
+	printSlice("1st slice", slice1)
+	printSlice("2nd slice", slice2)
+	printSlice("3rd slice", slice3)
+	printSlice("4th slice", slice4)
 
 	// we'll create 4 channels to send the sorted slices
 	chans := make([]chan []int, 4)
@@ -38,128 +66,118 @@ func main() {
 		chans[i] = make(chan []int)
 	}
 
+	// Start timer for regular functions
+	start := time.Now()
+
 	// we'll create 4 goroutines to sort each slice
-	go sort(slice1, chans[0])
-	go sort(slice2, chans[1])
-	go sort(slice3, chans[2])
-	go sort(slice4, chans[3])
+	go Sort(slice1, chans[0])
+	go Sort(slice2, chans[1])
+	go Sort(slice3, chans[2])
+	go Sort(slice4, chans[3])
 
 	// we'll merge the 4 sorted slices into a new slice
 
 	slice = merge(merge(<-chans[0], <-chans[1]),
 		merge(<-chans[2], <-chans[3]))
 
-	fmt.Println("Sorted slice: ", slice)
+	elapsed := time.Since(start)
+	fmt.Println("Time taken to sort the 4 parts and merge them :", elapsed)
+	fmt.Println()
+
+	printSlice("Sorted slice", slice)
+
+	//Now, just for fun, let's sort the slice using the regular sort function
+
+	noGoroutinesSlice := make([]int, size)
+
+	// we'll fill this slice with random numbers going from 0 to 100
+	randomise(noGoroutinesSlice)
+
+	printSlice("Unsorted randomised slice for the process without Goroutines", noGoroutinesSlice)
+
+	// Start timer for regular functions
+	start = time.Now()
+
+	// sort the slice using the regular sort function
+	lastChan := make(chan []int)
+	go Sort(noGoroutinesSlice, lastChan)
+
+	noGoroutinesSlice = <-lastChan
+
+	elapsedStandard := time.Since(start)
+
+	printSlice("Sorted slice using the regular sort function", noGoroutinesSlice)
+
+	fmt.Println("Time taken to sort the slice using the regular sort function :", elapsedStandard)
+	fmt.Println()
+
+	comparePerformance(elapsed, elapsedStandard)
 
 }
 
-func merge(s1 []int, s2 []int) (s []int) {
-
-	// merge two slices
-
-	// create a new slice with the size of the two slices combined
-	s = make([]int, len(s1)+len(s2))
-
-	// create two indexes, one for each slice
-	i, j := 0, 0
-
-	// loop through the two slices
-	for i < len(s1) && j < len(s2) {
-
-		// if the value of the first slice is smaller than the value of the second slice
-		if s1[i] < s2[j] {
-
-			// add the value of the first slice to the new slice
-			s[i+j] = s1[i]
-
-			// increment the index of the first slice
-			i++
-
-			// else
-		} else {
-
-			// add the value of the second slice to the new slice
-			s[i+j] = s2[j]
-
-			// increment the index of the second slice
-			j++
-		}
+func randomise(slice []int) {
+	for i := 0; i < len(slice); i++ {
+		slice[i] = rand.Intn(1000)
 	}
+}
 
-	// if we reached the end of the first slice
-	if i == len(s1) {
-
-		// copy the remaining values of the second slice to the new slice
-		copy(s[i+j:], s2[j:])
-		// else
+func printSlice(message string, slice []int) {
+	if len(slice) > 50 {
+		fmt.Printf("%s (%d integers in total, just showin the 50 first): %v\n", message, len(slice), slice[:50])
 	} else {
-
-		// copy the remaining values of the first slice to the new slice
-		copy(s[i+j:], s1[i:])
+		fmt.Printf("%s (%d integers): %v\n", message, len(slice), slice)
 	}
-
-	return s
-
+	fmt.Println()
 }
 
-func sort(slice []int, c chan []int) {
+func Sort(slice []int, c chan []int) {
 
-	// sort the slice
-	// Let's use the BubbleSort that we already implemented in another Assignement, and that was extensively tested
-	BubbleSort(slice)
+	// "My" Sort function just calls the regular sort function implemented in the sort package, and puts the result in the channel
+	// This is just to show how to use channels to send data between goroutines, and so that the timing is not polluted by the time taken to sort the slice (which would not be optimised if I do it myself)
+	sort.Ints(slice)
 
 	c <- slice
 }
 
-// BubbleSort sorts a slice of integers using the bubble sort algorithm.
+// merge merges two slices of integers into a new slice
+func merge(s1 []int, s2 []int) (s []int) {
 
-// Here is how a bubble sort works:
-// 1. Start at the beginning of the list.
-// 2. Compare the first two elements.
-// 3. If the first is greater than the second, swap them.
-// 4. Go to the next pair, and so on, continuously making sweeps of the list until sorted.
-// 5. In doing so, the smaller items slowly "bubble" up to the beginning of the list.
-// 6. If we ever make a sweep without swapping, the list is sorted and we can stop.
+	s = make([]int, len(s1)+len(s2))
 
-// We do it N-1 times, where N is the number of items in the list, to guarantee that it is sorted.
-// If we make a sweep and make no swaps, the list is sorted and we can stop
+	i, j := 0, 0
 
-func BubbleSort(numbers []int) {
+	for i < len(s1) && j < len(s2) {
 
-	for i := 0; i < len(numbers); i++ {
-
-		// At the beginning of each sweep, we setup a flag to indicate if we made a swap (we did not yet, so false)
-		didSwap := false
-		firstIndex := 0
-
-		// We need to make sure that we don't go out of bounds
-		for firstIndex < (len(numbers) - i - 1) {
-			firstNumber := numbers[firstIndex]
-			secondNumber := numbers[firstIndex+1]
-
-			// If the first number is greater than the second number, swap them
-			if firstNumber > secondNumber {
-				Swap(numbers, firstIndex)
-				// We made a swap, so set the flag to true
-				didSwap = true
-			}
-			firstIndex++
-		}
-		// if we didn't make a swap, the list is sorted and we can stop
-		if !didSwap {
-			break
+		if s1[i] < s2[j] {
+			s[i+j] = s1[i]
+			i++
+		} else {
+			s[i+j] = s2[j]
+			j++
 		}
 	}
+	if i == len(s1) {
+		copy(s[i+j:], s2[j:])
+	} else {
+		copy(s[i+j:], s1[i:])
+	}
+	return s
 }
 
-// Swap swaps the position of two elements in a slice of integers.
-func Swap(numbers []int, index int) {
-	// We need to make sure that we don't go out of bounds
-	// We already checked this in BubbleSort, but we check again here for safety (if this code is later on called from another function)
-	if index >= len(numbers)-1 {
-		return
+func comparePerformance(elapsed1, elapsed2 time.Duration) {
+	elapsed1Millis := float64(elapsed1) / float64(time.Millisecond)
+	elapsed2Millis := float64(elapsed2) / float64(time.Millisecond)
+
+	var difference float64
+	var message string
+
+	if elapsed1Millis < elapsed2Millis {
+		difference = (elapsed2Millis - elapsed1Millis) / elapsed2Millis * 100
+		message = fmt.Sprintf("Goroutines were faster by %.2f%%", difference)
+	} else {
+		difference = (elapsed1Millis - elapsed2Millis) / elapsed1Millis * 100
+		message = fmt.Sprintf("Simple algorithm was faster by %.2f%%", difference)
 	}
-	originalValueAtIndex := numbers[index]
-	numbers[index] = numbers[index+1]
-	numbers[index+1] = originalValueAtIndex
+
+	fmt.Println(message)
 }
