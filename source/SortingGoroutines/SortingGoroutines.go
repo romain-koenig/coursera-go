@@ -89,8 +89,6 @@ func main() {
 	//Now, just for fun, let's sort the slice using the regular sort function
 
 	noGoroutinesSlice := make([]int, size)
-
-	// we'll fill this slice with random numbers going from 0 to 100
 	randomise(noGoroutinesSlice)
 
 	printSlice("Unsorted randomised slice for the process without Goroutines", noGoroutinesSlice)
@@ -99,11 +97,8 @@ func main() {
 	start = time.Now()
 
 	// sort the slice using the regular sort function
-	lastChan := make(chan []int)
-	go Sort(noGoroutinesSlice, lastChan)
 
-	noGoroutinesSlice = <-lastChan
-
+	sort.Ints(noGoroutinesSlice)
 	elapsedStandard := time.Since(start)
 
 	printSlice("Sorted slice using the regular sort function", noGoroutinesSlice)
